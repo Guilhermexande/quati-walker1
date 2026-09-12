@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Quati Walker",
+    "slug": "quati-walker",
+    "scheme": "quatiwalker",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "O Quati Walker usa sua localização para encontrar passeadores por perto e para registrar o início e o fim do serviço."
+        }
+      ]
+    ],
+    "ios": { "supportsTablet": false, "bundleIdentifier": "br.com.quatiwalker.app" },
+    "android": {
+      "package": "br.com.quatiwalker.app",
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+    },
+    "extra": { "router": {} }
+  }
+}
