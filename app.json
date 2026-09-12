@@ -11,6 +11,13 @@
       "expo-router",
       "expo-secure-store",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Quati Walker usa suas fotos para você escolher a foto do seu animal. Ela só aparece para quem for cuidar dele num serviço aceito.",
+          "cameraPermission": "O Quati Walker usa a câmera para você tirar a foto do seu animal na hora do cadastro."
+        }
+      ],
+      [
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "O Quati Walker usa sua localização para encontrar passeadores por perto e para registrar o início e o fim do serviço."

@@ -264,6 +264,82 @@ export function TextField({
 }
 
 /**
+ * Campo de texto de parágrafo, com uma linha de ajuda embaixo do rótulo.
+ *
+ * Existe por causa de um campo só: as observações de risco do animal. É o campo
+ * que transfere ao tutor a responsabilidade pelo que ele omitir, e num TextField
+ * de uma linha o texto rola para o lado — a pessoa perde de vista o que escreveu
+ * justo ali. Quatro linhas à vista mudam a resposta: caixa baixa recebe três
+ * palavras, caixa alta recebe o parágrafo.
+ *
+ * Mora aqui, e não dentro de uma tela, porque o cadastro e a edição do animal
+ * pedem o mesmo dado — e quando cada tela tinha o seu, a edição acabou com uma
+ * caixa de uma linha chamada "Observações", exatamente o que o cadastro existia
+ * para evitar.
+ */
+export function LongTextField({
+  label,
+  help,
+  value,
+  onChangeText,
+  placeholder,
+  error,
+}: {
+  label: string
+  help: string
+  value: string
+  onChangeText: (v: string) => void
+  placeholder?: string
+  error?: string
+}): React.JSX.Element {
+  const theme = useTheme()
+  const s = useStyles()
+
+  const [focused, setFocused] = React.useState(false)
+  const hasError = error !== undefined && error.trim().length > 0
+
+  return (
+    <View style={s.field}>
+      <Text
+        style={[s.fieldLabel, hasError ? s.fieldLabelError : focused && s.fieldLabelFocused]}
+        accessibilityElementsHidden
+        importantForAccessibility="no"
+      >
+        {label}
+      </Text>
+      <Text style={s.fieldHelp} accessibilityElementsHidden importantForAccessibility="no">
+        {help}
+      </Text>
+
+      <View style={[s.fieldBox, hasError ? s.fieldBoxError : focused && s.fieldBoxFocused]}>
+        <TextInput
+          style={s.fieldInputLong}
+          value={value}
+          onChangeText={onChangeText}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={placeholder}
+          placeholderTextColor={theme.colors.textDim}
+          selectionColor={theme.colors.primary}
+          multiline
+          autoCapitalize="sentences"
+          accessibilityLabel={label}
+          accessibilityHint={hasError ? error : help}
+        />
+      </View>
+
+      <View style={s.fieldErrorSlot}>
+        {hasError ? (
+          <Text style={s.fieldErrorText} accessibilityLiveRegion="polite">
+            {error}
+          </Text>
+        ) : null}
+      </View>
+    </View>
+  )
+}
+
+/**
  * Erro que vale para a tela inteira — o que veio do servidor, não do campo.
  * A mensagem chega pronta (ver `toAppError` em src/api/client.ts): já diz o que
  * houve e o que fazer. Aqui não se reescreve texto de erro.
@@ -389,6 +465,22 @@ function createStyles(t: Theme) {
       paddingRight: spacing.md,
       // Android alinha o texto do campo ao topo por padrão.
       textAlignVertical: 'center',
+    },
+    fieldHelp: {
+      color: c.textDim,
+      fontSize: font.size.xs,
+      lineHeight: font.line.xs,
+    },
+    fieldInputLong: {
+      // Quatro linhas de texto à vista. Menos que isso e a caixa parece um campo
+      // comum, e a pessoa responde em três palavras.
+      minHeight: 112,
+      color: c.text,
+      fontSize: font.size.md,
+      lineHeight: font.line.md,
+      padding: spacing.md,
+      // Android começa o texto no meio da caixa quando ela é alta.
+      textAlignVertical: 'top',
     },
     fieldReveal: {
       minWidth: TOUCH_MIN,

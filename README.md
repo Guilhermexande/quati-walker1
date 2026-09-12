@@ -12,8 +12,8 @@ só por PIX com split no Mercado Pago.
 | Épico | O que é | Situação |
 |---|---|---|
 | 0 | Schema + RPC + ADR + auditoria | ✅ feito |
-| 1 | Autenticação e perfis | ⬜ próximo |
-| 2 | Cadastro de animais (cão e gato) | ⬜ |
+| 1 | Autenticação e perfis | ✅ feito |
+| 2 | Cadastro de animais (cão e gato) | ✅ feito |
 | 3 | Solicitação de serviço + aceite dos Termos | ⬜ |
 | 5 | PIX via Mercado Pago + webhook | ⬜ |
 | 4 | Matching geoespacial (PostGIS) | ⬜ |
@@ -24,6 +24,46 @@ só por PIX com split no Mercado Pago.
 Quadro: https://trello.com/b/TaAGHaFE/quatiwalker
 
 ---
+
+## Rodar o app
+
+```bash
+npm install --legacy-peer-deps
+cp .env.example .env      # preencha com os dados do seu projeto Supabase
+npx expo start
+```
+
+Verificado em 12/09/2026: `tsc --noEmit` sem erro e `expo export` empacotando
+1115 módulos. O app ainda não foi aberto num aparelho — falta um projeto
+Supabase de verdade para o login funcionar.
+
+> `--legacy-peer-deps` é necessário hoje: `react-dom@19.3` conflita com o
+> `react@19.1` que o SDK 54 fixa. Não afeta o app, que não usa react-dom.
+
+### O que ficou pendente do Épico 1
+
+Achados da revisão que não foram aplicados, em ordem de importância:
+
+- o botão "Criar minha conta" aceita dois toques seguidos e empilha duas telas;
+- `walker-setup` fica sem saída enquanto o salvamento falha;
+- queda de rede entre entrar e buscar o perfil deixa a pessoa logada numa tela de erro;
+- a tela de nova senha (o link do e-mail) não existe — hoje só o envio.
+
+### O que ficou pendente do Épico 2
+
+Dos 25 achados das duas revisões, o crítico e todos os altos foram aplicados.
+Ficaram de fora:
+
+- o aviso da vacina em `pets/[id].tsx` usa os mesmos tokens do `ErrorBanner`,
+  então dois blocos vermelhos diferentes convivem na mesma tela;
+- a borda das linhas de escolha mede 2,99:1 sobre `surface` no tema escuro —
+  único ponto do épico abaixo de 3:1 (o texto todo passa com folga).
+
+Um cuidado que não é dívida, mas se perde fácil: o caminho do arquivo no bucket
+é `<owner_id>/<pet_id>.jpg`, montado em `src/api/storage.ts` e conferido pela
+policy da `0003_storage.sql`. Mudar a convenção de um lado sem mudar do outro
+não dá erro — a foto simplesmente some para o passeador. `tests/02_storage.sql`
+é o que avisa.
 
 ## Documentos
 
@@ -51,10 +91,11 @@ Carregar e testar (o `-i` com redirecionamento evita `docker cp`, que embaralha
 caminho no Git Bash do Windows):
 
 ```bash
-for f in tests/00_stub_supabase.sql supabase/migrations/0001_schema.sql supabase/migrations/0002_rpc.sql tests/01_smoke.sql; do docker exec -i quati-db psql -U postgres -d quati -v ON_ERROR_STOP=1 -q < "$f"; done
+bash scripts/db-test.sh
 ```
 
-Esperado no fim: `TODOS OS TESTES PASSARAM`. **Verificado em 12/09/2026: 18/18.**
+Esperado no fim: `TODOS OS TESTES PASSARAM` e `TESTES DE STORAGE PASSARAM`.
+**Verificado em 12/09/2026: 18/18 de fumaça + 8/8 de storage.**
 
 Para recomeçar do zero:
 

@@ -6,11 +6,16 @@
 --   2. ninguém pula etapa da máquina de estados
 --
 -- Como rodar (precisa de um Postgres com PostGIS):
+--   bash scripts/db-test.sh
+--
+-- Ou à mão, nesta ordem:
 --   psql "$URL" -v ON_ERROR_STOP=1 \
 --     -f tests/00_stub_supabase.sql \
 --     -f supabase/migrations/0001_schema.sql \
 --     -f supabase/migrations/0002_rpc.sql \
---     -f tests/01_smoke.sql
+--     -f supabase/migrations/0003_storage.sql \
+--     -f tests/01_smoke.sql \
+--     -f tests/02_storage.sql
 --
 -- Qualquer FALHOU aborta o script. Silêncio no fim = tudo passou.
 -- =============================================================================

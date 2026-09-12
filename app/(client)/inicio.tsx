@@ -1,20 +1,25 @@
 /**
- * A casa do tutor — por enquanto, a confirmação de que o cadastro deu certo.
+ * A casa do tutor — a confirmação de que o cadastro deu certo e a porta para o
+ * que já existe.
  *
- * O Épico 1 entrega conta, perfil e papel. Animais, pedido, PIX e avaliação são
- * os próximos. Esta tela existe para o app abrir em algum lugar que faça
- * sentido e para dizer, sem enrolar, o que ainda não está aqui. Ela não segura
- * regra de negócio nenhuma: quando o Épico 2 chegar, é substituída inteira.
+ * O Épico 1 entrega conta, perfil e papel; o Épico 2 abriu os animais, e é para
+ * lá que o botão leva. Pedido, PIX e avaliação ainda não estão aqui, e a tela
+ * diz isso sem enrolar. Ela não segura regra de negócio nenhuma: cada épico
+ * novo troca um item da lista de espera por um caminho de verdade.
  */
 import * as React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
+import { useRouter } from 'expo-router'
 
 import { Body, Button, ErrorBanner, Screen, Title } from '@/components/ui'
 import { useMyProfile, useSignOutMutation } from '@/hooks/useAuth'
 import { useTheme, type Theme } from '@/lib/theme'
 
+/**
+ * O que ainda não chegou. Cadastrar animal saiu daqui quando o Épico 2 entrou —
+ * item que já funciona vira botão, não promessa.
+ */
 const PROXIMOS_PASSOS = [
-  'Cadastrar seu cão ou seu gato, com a carteira de vacinação em dia',
   'Pedir um passeio para o cão, ou uma visita em casa para o gato',
   'Pagar por PIX e acompanhar o serviço do começo ao fim',
   'Avaliar quem cuidou do seu animal',
@@ -22,6 +27,7 @@ const PROXIMOS_PASSOS = [
 
 export default function InicioDoTutor(): React.JSX.Element {
   const s = useEstilos()
+  const router = useRouter()
   const perfil = useMyProfile()
   const sair = useSignOutMutation()
 
@@ -42,6 +48,16 @@ export default function InicioDoTutor(): React.JSX.Element {
         Seu cadastro está pronto. O resto do aplicativo chega por atualização — você não vai
         precisar baixar nada de novo.
       </Body>
+
+      {/* O caminho para o animal vem antes da lista de espera: sem animal
+          cadastrado não há passeio nem visita para pedir depois. O texto serve
+          para quem tem zero animais e para quem já tem três. */}
+      <Body>
+        Seu cão e seu gato ficam aqui, com a foto e a vacina de cada um — é o animal
+        cadastrado que o passeador vai atender.
+      </Body>
+
+      <Button label="Meus animais" onPress={() => router.push('/(client)/pets')} />
 
       <View style={s.cartao}>
         <Text style={s.cartaoTitulo} accessibilityRole="header">
