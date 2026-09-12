@@ -73,6 +73,24 @@ export default function RegisterScreen(): React.JSX.Element {
     router.replace('/login')
   }
 
+  // Cadastro que deu certo e espera confirmação NÃO é erro — é o fim feliz
+  // deste fluxo. Mostrar isso na tarja vermelha fazia a pessoa reler "Conta
+  // criada" como falha e apertar o botão de novo, ouvindo então que o e-mail
+  // já estava cadastrado. Aqui o formulário sai de cena e dá lugar ao recado.
+  if (criarConta.data && 'confirmarEmail' in criarConta.data) {
+    return (
+      <Screen scroll>
+        <Title>Falta só confirmar seu e-mail</Title>
+        <Body>
+          Sua conta foi criada. Abra o e-mail que acabamos de enviar e toque no link — depois
+          volte aqui e entre com a sua senha.
+        </Body>
+        <Body dim>Não chegou? Procure na caixa de spam. O e-mail pode levar alguns minutos.</Body>
+        <Button label="Ir para a tela de entrar" onPress={() => router.replace('/login')} />
+      </Screen>
+    )
+  }
+
   return (
     <Screen scroll>
       {/* O KeyboardAvoidingView (com behavior por plataforma) já vem do Screen.

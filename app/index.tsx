@@ -36,5 +36,5 @@ export default function Entrada(): React.JSX.Element {
 
   // Admin usa a área de tutor por enquanto — ver a explicação em `paraOndeIr`,
   // no `_layout`.
-  return role === 'walker' ? <Redirect href="/(walker)" /> : <Redirect href="/(client)" />
+  return role === 'walker' ? <Redirect href="/(walker)/painel" /> : <Redirect href="/(client)/inicio" />
 }

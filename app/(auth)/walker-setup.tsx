@@ -90,7 +90,7 @@ export default function PreferenciasDoPasseador(): React.JSX.Element {
         <Title>Pronto, está tudo salvo</Title>
         <Body>
           Você vai receber só os pedidos que combinam com o que marcou aqui, dentro da
-          distância que escolheu. Dá para mudar isso quando quiser.
+          distância que escolheu. Por enquanto, para ajustar isso é só falar com a gente — a tela de editar chega junto com os pedidos.
         </Body>
 
         {/* A conexão com o Mercado Pago é o Épico 5. Não existe tela para isso
@@ -109,7 +109,7 @@ export default function PreferenciasDoPasseador(): React.JSX.Element {
           </Text>
         </View>
 
-        <Button label="Continuar" onPress={() => router.replace('/(walker)')} />
+        <Button label="Continuar" onPress={() => router.replace('/(walker)/painel')} />
       </Screen>
     )
   }

@@ -8,7 +8,14 @@
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { signInWithEmail, signOut, signUpWithEmail } from '@/api/auth'
+import {
+  getCurrentUserEmail,
+  sendPasswordReset,
+  signInWithEmail,
+  signOut,
+  signUpWithEmail,
+  type SignUpResult,
+} from '@/api/auth'
 import {
   createMyProfile,
   getMyProfile,
@@ -74,15 +81,41 @@ export function useSignIn() {
 export function useSignUp() {
   const queryClient = useQueryClient()
 
-  return useMutation<string, Error, Credenciais>({
+  return useMutation<SignUpResult, Error, Credenciais>({
     mutationFn: ({ email, password }) => signUpWithEmail(email, password),
-    onSuccess: (userId) => {
+    onSuccess: (resultado) => {
+      // Cadastro à espera de confirmação não abre sessão: a pessoa continua
+      // deslogada até clicar no link do e-mail. Mexer na store aqui a mandaria
+      // para a tela de escolher papel sem token nenhum.
+      if ('confirmarEmail' in resultado) return
+
       queryClient.removeQueries()
 
       // Conta recém-criada não tem perfil — este é o buraco entre o Auth e a
       // tabela profiles. 'no_profile' é o que leva à tela de escolher papel.
-      useSessionStore.getState().setSession(userId, null)
+      useSessionStore.getState().setSession(resultado.userId, null)
     },
+  })
+}
+
+/** O e-mail da conta aberta, para não perguntar duas vezes a mesma coisa. */
+export function useMyEmail() {
+  const status = useSessionStore((s) => s.status)
+
+  return useQuery({
+    queryKey: ['auth', 'email'],
+    queryFn: () => getCurrentUserEmail(),
+    enabled: status !== 'signed_out',
+    staleTime: Infinity,
+  })
+}
+
+/**
+ * Envia o e-mail de nova senha. A resposta é a mesma com ou sem conta.
+ */
+export function useRequestPasswordReset() {
+  return useMutation<void, Error, { email: string }>({
+    mutationFn: ({ email }) => sendPasswordReset(email),
   })
 }
 

@@ -103,7 +103,11 @@ function Sessao(): React.JSX.Element {
     useSessionStore.getState().setSession(userId, perfil.data?.role ?? null)
   }, [userId, perfil.isPending, perfil.isError, perfil.data])
 
-  const segments = useSegments()
+  // O expo-router tipa useSegments() a partir das rotas que conhece, e hoje o
+  // tipo mais estreito tem um elemento só — ler o segundo seria erro de tipo,
+  // ainda que em tempo de execução ele exista ("(auth)", "role"). A leitura
+  // como lista de tamanho aberto é o que descreve o valor de verdade.
+  const segments = useSegments() as readonly (string | undefined)[]
   const grupo = segments[0]
   const tela = segments[1]
 
@@ -188,15 +192,15 @@ function paraOndeIr(
     // reagisse ao 'ready' antes dela, a tela de preferências ficaria
     // inalcançável e o passeador nunca receberia serviço.
     if (grupo === '(auth)') {
-      return tela === 'role' || tela === 'walker-setup' ? null : '/(walker)'
+      return tela === 'role' || tela === 'walker-setup' ? null : '/(walker)/painel'
     }
-    return grupo === '(walker)' ? null : '/(walker)'
+    return grupo === '(walker)' ? null : '/(walker)/painel'
   }
 
   // Admin não tem área própria no aplicativo: a administração é feita fora
   // dele. Até existir uma, cai na área de tutor — que no pior caso mostra o
   // próprio cadastro.
-  return grupo === '(client)' ? null : '/(client)'
+  return grupo === '(client)' ? null : '/(client)/inicio'
 }
 
 function FalhaAoAbrir({

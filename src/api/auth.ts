@@ -62,7 +62,21 @@ function normalizarEmail(email: string): string {
   return email.trim().toLowerCase()
 }
 
-export async function signUpWithEmail(email: string, password: string): Promise<string> {
+/**
+ * Resultado do cadastro.
+ *
+ * "Falta confirmar o e-mail" NÃO é erro: é o caminho feliz quando o projeto
+ * Supabase exige confirmação. Entregar isso como exceção fazia a tela mostrar
+ * "Conta criada" dentro de uma tarja vermelha de falha — e a pessoa, sem
+ * entender, apertava Criar conta de novo e ouvia "já existe uma conta com esse
+ * e-mail". Duas mensagens que se contradizem no primeiro minuto de uso.
+ */
+export type SignUpResult = { userId: string } | { confirmarEmail: true }
+
+export async function signUpWithEmail(
+  email: string,
+  password: string,
+): Promise<SignUpResult> {
   const { data, error } = await supabase.auth.signUp({
     email: normalizarEmail(email),
     password,
@@ -82,16 +96,35 @@ export async function signUpWithEmail(email: string, password: string): Promise<
     throw new AppError('Já existe uma conta com esse e-mail. Entre com a sua senha.')
   }
 
-  // Sem sessão não há auth.uid(), e o passo seguinte — criar o perfil — bate na
-  // RLS e falha com uma mensagem que ninguém entende. Melhor dizer aqui o que
-  // ainda falta.
-  if (!data.session) {
-    throw new AppError(
-      'Conta criada. Confirme o e-mail que enviamos e depois entre com a sua senha.',
-    )
-  }
+  // Sem sessão não há auth.uid(), e o passo seguinte — criar o perfil — bateria
+  // na RLS. Não é falha: é o cadastro esperando a confirmação do e-mail.
+  if (!data.session) return { confirmarEmail: true }
 
-  return user.id
+  return { userId: user.id }
+}
+
+/**
+ * O e-mail de quem está logado, lido da sessão guardada no aparelho.
+ *
+ * Existe para a tela de cadastro não pedir de novo um endereço que a pessoa
+ * digitou dois minutos antes — pedir o mesmo dado duas vezes faz o app parecer
+ * desatento, e ainda abre espaço para ela digitar diferente das duas vezes.
+ */
+export async function getCurrentUserEmail(): Promise<string | null> {
+  const { data, error } = await supabase.auth.getSession()
+  if (error) return null
+  return data.session?.user.email ?? null
+}
+
+/**
+ * Pede o e-mail de redefinição de senha.
+ *
+ * A tela responde sempre a mesma coisa, tenha ou não conta com esse endereço —
+ * responder diferente entregaria a estranhos quem é cadastrado aqui.
+ */
+export async function sendPasswordReset(email: string): Promise<void> {
+  const { error } = await supabase.auth.resetPasswordForEmail(normalizarEmail(email))
+  if (error) throw toAuthError(error)
 }
 
 export async function signInWithEmail(email: string, password: string): Promise<string> {

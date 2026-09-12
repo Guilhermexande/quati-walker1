@@ -8,9 +8,10 @@
  */
 import * as React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
+import { Redirect } from 'expo-router'
 
-import { Body, Button, ErrorBanner, Screen, Title } from '@/components/ui'
-import { useMyProfile, useSignOutMutation } from '@/hooks/useAuth'
+import { Body, Button, ErrorBanner, Loading, Screen, Title } from '@/components/ui'
+import { useMyProfile, useMyWalkerProfile, useSignOutMutation } from '@/hooks/useAuth'
 import { useTheme, type Theme } from '@/lib/theme'
 
 const PROXIMOS_PASSOS = [
@@ -23,12 +24,29 @@ const PROXIMOS_PASSOS = [
 export default function InicioDoPasseador(): React.JSX.Element {
   const s = useEstilos()
   const perfil = useMyProfile()
+  const preferencias = useMyWalkerProfile()
   const sair = useSignOutMutation()
 
   // Sem tela de carregando de propósito: chegar aqui já exige o perfil buscado.
   // O único instante sem nome é logo depois de sair, e aí um giro na tela
   // inteira chamaria mais atenção que o cumprimento curto.
   const nome = primeiroNome(perfil.data?.full_name ?? '')
+
+  // Papel 'walker' sem linha em walker_profiles é cadastro parado no meio: o
+  // app não sabe onde nem com quem a pessoa atende, e nenhum pedido pode chegar
+  // até ela. Nenhuma outra tela leva de volta ao passo que falta — por isso a
+  // volta sai daqui. Sem isto, quem fechasse o app naquele instante sumiria.
+  if (preferencias.isPending) {
+    return (
+      <Screen>
+        <Loading />
+      </Screen>
+    )
+  }
+
+  if (preferencias.isSuccess && preferencias.data === null) {
+    return <Redirect href="/(auth)/walker-setup" />
+  }
 
   return (
     <Screen scroll>

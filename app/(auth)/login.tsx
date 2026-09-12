@@ -18,16 +18,18 @@ import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
 import { Body, Button, ErrorBanner, Screen, TextField, Title } from '@/components/ui'
-import { useSignIn } from '@/hooks/useAuth'
+import { useRequestPasswordReset, useSignIn } from '@/hooks/useAuth'
 import { useTheme, type Theme } from '@/lib/theme'
 import { signInSchema, type SignInInput } from '@/schemas/profile'
 
 export default function LoginScreen(): React.JSX.Element {
   const router = useRouter()
   const entrar = useSignIn()
+  const novaSenha = useRequestPasswordReset()
+  const [avisoSenha, setAvisoSenha] = React.useState<string | null>(null)
   const s = useStyles()
 
-  const { control, handleSubmit } = useForm<SignInInput>({
+  const { control, handleSubmit, getValues } = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
     defaultValues: { email: '', password: '' },
     // Fica no padrão de propósito: valida no envio e, a partir daí, a cada
@@ -94,6 +96,37 @@ export default function LoginScreen(): React.JSX.Element {
         />
 
         <Button label="Entrar" onPress={() => void enviar()} loading={entrar.isPending} />
+
+        {/* Esquecer a senha é o caso mais comum de quem instalou o app há três
+            semanas. Sem esta saída, "e-mail ou senha não conferem" vira beco:
+            a pessoa confere, confere de novo, e desiste.
+            A resposta é a mesma com ou sem conta — dizer "esse e-mail não
+            existe" entregaria a estranhos quem é cadastrado aqui. */}
+        {novaSenha.isSuccess ? (
+          <Body dim>
+            Se existe uma conta com esse e-mail, enviamos um link para você criar uma senha
+            nova. Olhe também a caixa de spam.
+          </Body>
+        ) : (
+          <Button
+            label="Esqueci minha senha"
+            variant="ghost"
+            loading={novaSenha.isPending}
+            disabled={entrar.isPending}
+            onPress={() => {
+              const email = getValues('email').trim()
+              if (email === '') {
+                setAvisoSenha('Escreva seu e-mail no campo acima e toque de novo.')
+                return
+              }
+              setAvisoSenha(null)
+              novaSenha.mutate({ email })
+            }}
+          />
+        )}
+
+        {avisoSenha === null ? null : <Body dim>{avisoSenha}</Body>}
+        {novaSenha.error ? <ErrorBanner message={novaSenha.error.message} /> : null}
       </View>
 
       {/* Empurra o convite de cadastro para o rodapé em tela alta e vira nada em

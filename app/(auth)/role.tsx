@@ -9,16 +9,16 @@
  * depois: `guard_profile_update` devolve o papel antigo em qualquer update
  * vindo do aplicativo. Prometer "você troca depois" seria mentira.
  *
- * O e-mail é pedido de novo porque o app não lê o endereço do Auth fora de
- * src/api — a tela de cadastro pode mandá-lo como parâmetro, e aí o campo já
- * vem preenchido.
+ * O e-mail já vem preenchido da sessão aberta (useMyEmail). O campo continua
+ * visível e editável porque é ele que vai para a coluna `email` de profiles —
+ * a pessoa pode querer receber os avisos do serviço em outro endereço.
  */
 import * as React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 
 import { Body, Button, ErrorBanner, Screen, TextField, Title } from '@/components/ui'
-import { useCreateProfile } from '@/hooks/useAuth'
+import { useCreateProfile, useMyEmail, useSignOutMutation } from '@/hooks/useAuth'
 import { useTheme, type Theme } from '@/lib/theme'
 import { profileSchema } from '@/schemas/profile'
 
@@ -52,14 +52,24 @@ export default function EscolhaDePapel(): React.JSX.Element {
   const router = useRouter()
   const s = useStyles()
   const criarPerfil = useCreateProfile()
+  const sair = useSignOutMutation()
 
-  const parametros = useLocalSearchParams()
-  const emailDaConta = typeof parametros['email'] === 'string' ? parametros['email'] : ''
+  // O e-mail vem da sessão, não de parâmetro de rota: quem chega aqui já está
+  // logado, e a tela de cadastro nunca passou esse parâmetro — o campo ficava
+  // vazio e a pessoa redigitava um dado que o app já tinha.
+  const emailDaConta = useMyEmail().data ?? ''
 
   const [papel, setPapel] = React.useState<Papel | null>(null)
   const [nome, setNome] = React.useState('')
   const [telefone, setTelefone] = React.useState('')
-  const [email, setEmail] = React.useState(() => emailDaConta)
+  const [email, setEmail] = React.useState('')
+
+  // O e-mail chega depois do primeiro render, quando a consulta resolve. Um
+  // valor inicial no useState nunca o pegaria. Só preenche enquanto o campo
+  // estiver intocado — se a pessoa já digitou outro endereço, o dela prevalece.
+  React.useEffect(() => {
+    if (emailDaConta !== '') setEmail((atual) => (atual === '' ? emailDaConta : atual))
+  }, [emailDaConta])
   const [cpf, setCpf] = React.useState('')
   const [erros, setErros] = React.useState<Record<string, string>>({})
 
@@ -119,6 +129,22 @@ export default function EscolhaDePapel(): React.JSX.Element {
             vai precisar de outra conta, com outro e-mail.
           </Text>
         </View>
+
+        {/* Sem esta saída a tela é uma armadilha: a conta já existe no Auth, e o
+            guarda do _layout devolve a pessoa para cá em toda abertura enquanto
+            não houver linha em profiles. Quem errou o e-mail, travou no CPF ou
+            só quer pensar antes de decidir ficaria preso até desinstalar. */}
+        {sair.error ? <ErrorBanner message={sair.error.message} /> : null}
+        <Button
+          label="Sair e usar outra conta"
+          variant="ghost"
+          loading={sair.isPending}
+          onPress={() => sair.mutate()}
+        />
+        <Body dim>
+          Sua conta já foi criada. Se você saiu por engano, é só entrar de novo com o mesmo
+          e-mail e a mesma senha.
+        </Body>
       </Screen>
     )
   }
@@ -200,6 +226,14 @@ export default function EscolhaDePapel(): React.JSX.Element {
           setCpf('')
           setPapel(null)
         }}
+      />
+
+      <Button
+        label="Sair e usar outra conta"
+        variant="ghost"
+        disabled={criarPerfil.isPending}
+        loading={sair.isPending}
+        onPress={() => sair.mutate()}
       />
     </Screen>
   )

@@ -124,14 +124,20 @@ export async function saveWalkerProfile(input: {
   acceptsLargeDog: boolean
 }): Promise<WalkerProfile> {
   const userId = await requireUserId()
-  const bio = input.bio?.trim() ?? ''
+
+  // `bio` é opcional na assinatura, e uma tela que só mexe no raio não a manda.
+  // Incluí-la sempre no upsert gravava null por cima da apresentação que o
+  // passeador escreveu — apagava o texto dele a cada ajuste de preferência.
+  // Aqui ela entra no payload apenas quando veio de verdade.
+  const bio = input.bio?.trim()
+  const campoBio = bio === undefined ? {} : { bio: bio === '' ? null : bio }
 
   const { data, error } = await supabase
     .from('walker_profiles')
     .upsert(
       {
         user_id: userId,
-        bio: bio === '' ? null : bio,
+        ...campoBio,
         radius_m: input.radiusM,
         accepts_dog: input.acceptsDog,
         accepts_cat: input.acceptsCat,
