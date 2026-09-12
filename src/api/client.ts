@@ -31,39 +31,11 @@ export const supabase = createClient<Database>(url, anonKey, {
 })
 
 /**
- * Traduz erro do Postgres para mensagem que uma pessoa entende.
+ * `AppError` e `toAppError` foram para src/lib/erros.ts e são reexportados aqui.
  *
- * As funções RPC levantam exceção com `hint` para os casos que a tela precisa
- * tratar de forma diferente — ver 0002_rpc.sql.
+ * O motivo está escrito lá: um arquivo que só precisa da classe de erro não pode
+ * ser obrigado a carregar o Supabase inteiro — e este módulo levanta na carga
+ * quando faltam as variáveis do .env. A reexportação existe para que todo
+ * `src/api/` continue importando de um lugar só.
  */
-export type AppErrorHint = 'ja_aceito' | 'pagar_antes' | 'sem_mp' | null
-
-export class AppError extends Error {
-  readonly hint: AppErrorHint
-  constructor(message: string, hint: AppErrorHint = null) {
-    super(message)
-    this.name = 'AppError'
-    this.hint = hint
-  }
-}
-
-type PostgrestLike = { message?: string; hint?: string | null; code?: string }
-
-export function toAppError(error: unknown): AppError {
-  const e = error as PostgrestLike | null
-
-  if (!e) return new AppError('Algo deu errado. Tente de novo.')
-
-  const hint = (e.hint ?? null) as AppErrorHint
-
-  // Erros de rede não têm mensagem útil do servidor.
-  if (e.message?.includes('Network request failed')) {
-    return new AppError('Sem conexão. Verifique a internet e tente de novo.')
-  }
-
-  // `raise exception` no Postgres chega com a mensagem em português, escrita
-  // no 0002_rpc.sql pensando em quem vai ler na tela.
-  if (e.message) return new AppError(e.message, hint)
-
-  return new AppError('Algo deu errado. Tente de novo.')
-}
+export { AppError, toAppError, type AppErrorHint } from '@/lib/erros'

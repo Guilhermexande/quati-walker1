@@ -14,7 +14,7 @@
  *   accent   atenção         (aguardando pagamento, reserva vencendo)
  *   danger   falha           (expirou, cancelado, erro de formulário)
  */
-import { useColorScheme, type TextStyle } from 'react-native'
+import { useColorScheme, useWindowDimensions, type TextStyle } from 'react-native'
 
 export type Theme = {
   colors: {
@@ -121,10 +121,67 @@ const dark: Theme = {
 }
 
 /**
+ * Os temas já prontos, por escala de fonte.
+ *
+ * Cada objeto de tema é usado como CHAVE de cache de estilo nas telas (WeakMap
+ * ou useMemo). Devolver um objeto novo a cada render remontaria todo StyleSheet
+ * do aplicativo a cada frame — por isso a escala vira uma entrada de mapa, e o
+ * mesmo par (tema, escala) devolve sempre o mesmo objeto.
+ */
+const porEscala = new Map<string, Theme>()
+
+/**
+ * O aumento de fonte do sistema, arredondado para meio passo.
+ *
+ * Sem arredondar, alguns Android devolvem escalas como 1,1500000001 e cada
+ * fração diferente criaria uma entrada nova no mapa. Meio passo é fino o
+ * bastante para o texto respirar e grosso o bastante para o cache servir.
+ */
+function escalaArredondada(fontScale: number): number {
+  if (!Number.isFinite(fontScale) || fontScale <= 0) return 1
+  return Math.round(Math.min(fontScale, 2.5) * 2) / 2
+}
+
+/**
  * O app declara `userInterfaceStyle: automatic`, então quem manda é o sistema.
- * Os dois temas são constantes de módulo de propósito: a identidade sobrevive
- * a cada render, e memorizar estilo por tema fica barato.
+ *
+ * A escala de fonte entra aqui por um motivo concreto: o React Native multiplica
+ * o `fontSize` pelo aumento de fonte do aparelho, mas trata o `lineHeight`
+ * escrito à mão como valor FIXO. Num ajuste de 150% — comum no público deste
+ * aplicativo — o corpo de 17pt vira ~25pt dentro de uma linha de 24pt, e as
+ * linhas se encavalam ou a última é cortada. Escalar a altura de linha junto é
+ * o que mantém o parágrafo legível.
+ *
+ * `size` NÃO é escalado aqui: disso o sistema já cuida, e dobrar a conta faria
+ * o texto crescer ao quadrado.
  */
 export function useTheme(): Theme {
-  return useColorScheme() === 'dark' ? dark : light
+  const escuro = useColorScheme() === 'dark'
+  // `useWindowDimensions` é o que re-renderiza quando a pessoa mexe no ajuste de
+  // fonte sem fechar o aplicativo.
+  const escala = escalaArredondada(useWindowDimensions().fontScale)
+
+  const base = escuro ? dark : light
+  if (escala === 1) return base
+
+  const chave = `${escuro ? 'dark' : 'light'}:${escala}`
+  const guardado = porEscala.get(chave)
+  if (guardado !== undefined) return guardado
+
+  const { line } = base.font
+  const criado: Theme = {
+    ...base,
+    font: {
+      ...base.font,
+      line: {
+        xs: Math.round(line.xs * escala),
+        sm: Math.round(line.sm * escala),
+        md: Math.round(line.md * escala),
+        lg: Math.round(line.lg * escala),
+        xl: Math.round(line.xl * escala),
+      },
+    },
+  }
+  porEscala.set(chave, criado)
+  return criado
 }

@@ -2,10 +2,12 @@
  * A casa do tutor — a confirmação de que o cadastro deu certo e a porta para o
  * que já existe.
  *
- * O Épico 1 entrega conta, perfil e papel; o Épico 2 abriu os animais, e é para
- * lá que o botão leva. Pedido, PIX e avaliação ainda não estão aqui, e a tela
- * diz isso sem enrolar. Ela não segura regra de negócio nenhuma: cada épico
- * novo troca um item da lista de espera por um caminho de verdade.
+ * O Épico 1 entrega conta, perfil e papel; o 2 abriu os animais e o 3 abriu o
+ * pedido de serviço — é para lá que os dois botões levam. Pagamento e avaliação
+ * ainda não estão aqui, e a tela diz isso sem enrolar. Ela não segura regra de
+ * negócio nenhuma: cada épico novo troca um item da lista de espera por um
+ * caminho de verdade, e esquecer essa troca deixa a tela nova inalcançável —
+ * foi o que aconteceu com os pedidos, e foi achado de revisão.
  */
 import * as React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
@@ -20,7 +22,6 @@ import { useTheme, type Theme } from '@/lib/theme'
  * item que já funciona vira botão, não promessa.
  */
 const PROXIMOS_PASSOS = [
-  'Pedir um passeio para o cão, ou uma visita em casa para o gato',
   'Pagar por PIX e acompanhar o serviço do começo ao fim',
   'Avaliar quem cuidou do seu animal',
 ]
@@ -58,6 +59,16 @@ export default function InicioDoTutor(): React.JSX.Element {
       </Body>
 
       <Button label="Meus animais" onPress={() => router.push('/(client)/pets')} />
+
+      {/* O pedido é o que a pessoa abriu o aplicativo para fazer. Vem logo
+          depois dos animais porque essa é a ordem real: sem animal cadastrado
+          não há o que pedir, e a tela de pedido manda de volta para cá. */}
+      <Body>
+        Quando precisar, peça o passeio do seu cão ou a visita para o seu gato — e acompanhe
+        aqui em que pé está cada pedido.
+      </Body>
+
+      <Button label="Passeios e visitas" onPress={() => router.push('/(client)/pedidos')} />
 
       <View style={s.cartao}>
         <Text style={s.cartaoTitulo} accessibilityRole="header">

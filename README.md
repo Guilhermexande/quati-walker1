@@ -14,7 +14,7 @@ só por PIX com split no Mercado Pago.
 | 0 | Schema + RPC + ADR + auditoria | ✅ feito |
 | 1 | Autenticação e perfis | ✅ feito |
 | 2 | Cadastro de animais (cão e gato) | ✅ feito |
-| 3 | Solicitação de serviço + aceite dos Termos | ⬜ |
+| 3 | Solicitação de serviço + aceite dos Termos | ✅ feito |
 | 5 | PIX via Mercado Pago + webhook | ⬜ |
 | 4 | Matching geoespacial (PostGIS) | ⬜ |
 | 6 | Execução do serviço | ⬜ |
@@ -34,7 +34,7 @@ npx expo start
 ```
 
 Verificado em 12/09/2026: `tsc --noEmit` sem erro e `expo export` empacotando
-1115 módulos. O app ainda não foi aberto num aparelho — falta um projeto
+1148 módulos. O app ainda não foi aberto num aparelho — falta um projeto
 Supabase de verdade para o login funcionar.
 
 > `--legacy-peer-deps` é necessário hoje: `react-dom@19.3` conflita com o
@@ -64,6 +64,23 @@ Um cuidado que não é dívida, mas se perde fácil: o caminho do arquivo no buc
 policy da `0003_storage.sql`. Mudar a convenção de um lado sem mudar do outro
 não dá erro — a foto simplesmente some para o passeador. `tests/02_storage.sql`
 é o que avisa.
+
+### O que ficou pendente do Épico 3
+
+Dos 18 achados das duas revisões, os 4 críticos e os 6 altos foram aplicados,
+mais 5 médios. Ficaram de fora:
+
+- o cartão de um pedido já aceito não mostra o prazo da reserva na lista, só na
+  tela de detalhe;
+- `DURACOES_CANDIDATAS = [30, 60, 90]` é uma lista fixa no app: uma linha de 120
+  minutos publicada em `pricing` não apareceria, e o sintoma seria a ausência
+  silenciosa de uma opção.
+
+**E uma coisa que não é dívida de código.** O pagamento por PIX é o Épico 5 e não
+existe ainda. Enquanto não existir, o texto do estado "aceito" não manda pagar:
+mandaria a pessoa procurar um botão que não há, o prazo venceria, e três
+vencimentos em 30 dias fazem `clients_pay_first` bloquear novos pedidos dela —
+o aplicativo punindo alguém por uma porta que ele nunca abriu.
 
 ## Documentos
 

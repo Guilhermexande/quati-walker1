@@ -20,15 +20,25 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "O Quati Walker usa sua localização para encontrar passeadores por perto e para registrar o início e o fim do serviço."
+          "locationAlwaysAndWhenInUsePermission": "O Quati Walker usa sua localização para encontrar passeadores por perto e para registrar o início e o fim do serviço.",
+          "locationWhenInUsePermission": "O Quati Walker usa sua localização para marcar no mapa o endereço do serviço e encontrar passeadores por perto."
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
-    "ios": { "supportsTablet": false, "bundleIdentifier": "br.com.quatiwalker.app" },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "br.com.quatiwalker.app"
+    },
     "android": {
       "package": "br.com.quatiwalker.app",
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
-    "extra": { "router": {} }
+    "extra": {
+      "router": {}
+    }
   }
 }
