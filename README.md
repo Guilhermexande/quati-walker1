@@ -7,6 +7,30 @@ só por PIX com split no Mercado Pago.
 
 ---
 
+## Sobre o projeto
+
+Projeto pessoal de [Guilherme Rocha](https://www.linkedin.com/in/guilherme-alexandre-farias-da-rocha-3a5928239),
+construído com agentes de IA (Claude Code) do começo ao fim. O objetivo é um app de verdade,
+com regra de negócio, pagamento e segurança pensados antes do código.
+
+**Como foi feito**
+
+- **Decisões antes do código.** As 10 regras do produto (preço, cancelamento, pagamento,
+  nota fiscal) estão em [`docs/ADR-001-decisoes.md`](docs/ADR-001-decisoes.md), cada uma com o porquê.
+- **Banco auditado por IA.** Quatro auditores independentes revisaram o schema, e cada achado
+  passou por dois céticos que tentaram derrubá-lo. Resultado: 85 problemas confirmados e a
+  v1.0 reescrita. Detalhes em [`docs/auditoria-schema-v1.md`](docs/auditoria-schema-v1.md).
+- **Agentes geram, agentes revisam.** Cada épico é escrito por agentes e passa por duas
+  revisões. Só fecha quando os achados críticos e altos estão corrigidos. O histórico de
+  commits mostra isso: o Épico 1 aparece antes e depois das correções.
+- **Segurança no banco, não na tela.** Toda escrita passa por funções do Postgres com RLS.
+  O app não tem SQL e não decide preço nem comissão.
+
+**Stack:** React Native 0.81 · Expo 54 · TypeScript · Supabase (Postgres, Auth, Storage) ·
+PostGIS · React Query · Zustand · Zod · Mercado Pago (PIX com split)
+
+---
+
 ## Estado do projeto
 
 | Épico | O que é | Situação |
